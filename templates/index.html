@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>公钥密码实验平台</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap 样式 -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+
+  <style>
+    /* 仅在此模板中做少量调整 */
+    .select-algo {
+      max-width: 420px;
+      margin: 20px auto 10px;
+    }
+    .key-area textarea {
+      height: 120px;      /* 扩大公/私钥显示区域 */
+    }
+    .btn-group-custom {
+      text-align: center;
+      margin-bottom: 15px;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container justify-content-center">
+      <a class="navbar-brand" href="#">🔐CryptoLab</a>
+    </div>
+  </nav>
+
+  <div class="container mb-5">
+    <form method="post" id="cryptoForm">
+      <!-- 算法选择下拉菜单 -->
+<select class="form-select text-center select-algo" name="algorithm" id="algorithmSelect">
+  <option value="RSA"    {% if request.form.get('algorithm', 'RSA') == 'RSA' %}selected{% endif %}>RSA</option>
+  <option value="ElGamal"{% if request.form.get('algorithm') == 'ElGamal' %}selected{% endif %}>ElGamal</option>
+  <option value="ECC"    {% if request.form.get('algorithm') == 'ECC' %}selected{% endif %}>ECC</option>
+</select>
+      <!-- 按钮组 -->
+      <div class="btn-group-custom">
+        <button name="action" value="genkey" class="btn btn-secondary btn-action mx-2">生成密钥</button>
+        <button name="action" value="encrypt" class="btn btn-success btn-action mx-2">加密</button>
+        <button name="action" value="decrypt" class="btn btn-warning btn-action mx-2">解密</button>
+      </div>
+
+      <!-- 密钥信息 -->
+      <div class="card key-area mb-4">
+        <div class="card-header">🔑 密钥信息</div>
+        <div class="card-body p-2">
+<textarea class="form-control" name="keys" readonly>
+{%- if keys[current_algo]['pub'] is not none -%}
+  {%- if current_algo == 'ECC' -%}
+公钥: Point(x={{ keys[current_algo]['pub']['x'] }}, y={{ keys[current_algo]['pub']['y'] }})
+  {%- else -%}
+公钥: {{ keys[current_algo]['pub'] }}
+  {%- endif -%}
+{%- endif -%}
+{%- if keys[current_algo]['priv'] is not none %}
+私钥: {{ keys[current_algo]['priv'] }}
+{%- endif -%}
+</textarea>
+        </div>
+      </div>
+
+      <!-- 明文/密文输入 -->
+      <div class="card mb-4">
+        <div class="card-header">✏️ 明文密文输入</div>
+        <div class="card-body p-2">
+          <input type="text" class="form-control" name="data" id="dataInput"
+                 placeholder="输入明文或密文" value="{{ request.form.data }}">
+        </div>
+      </div>
+
+      <!-- 结果输出 -->
+      <div class="card mb-4">
+        <div class="card-header">📄 结果输出</div>
+        <div class="card-body p-2">
+          <textarea class="form-control" id="resultOutput" rows="6" style="height: 150px;" readonly>  {% if result %}{{ result }}{% endif %}</textarea>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+
+<script>
+  document.getElementById('algorithmSelect').addEventListener('change', function() {
+    // 仅清空相关字段，不自动提交表单
+    document.querySelector('textarea[name="keys"]').value = '';
+    document.getElementById('dataInput').value = '';
+    document.getElementById('resultOutput').value = '';
+  });
+    document.querySelector('button[value="genkey"]').addEventListener('click', function() {
+    document.getElementById('dataInput').value = '';
+  });
+</script>
+</body>
+</html>
